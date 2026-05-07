@@ -115,6 +115,14 @@
                         <div class="money-value loan-value" id="loan-display">R$ 5.000,00</div>
                     </div>
                 </section>
+
+                <div class="divider"></div>
+
+                <section class="section">
+                    <div class="section-header"><h2>Histórico</h2></div>
+                    <div id="history-list"></div>
+                    <p id="no-history" class="view-subtitle" style="margin-top:8px;">Nenhuma transação recente.</p>
+                </section>
                 
                 <div style="height: 100px;"></div>
             </main>
@@ -279,13 +287,39 @@
             </div>
         </div>
 
+        <!-- Passo 4.5: Tela de Sucesso (Verde) -->
+        <div id="success-view" class="view" style="background:#118C4F;color:#fff;">
+            <div class="success-content">
+                <div class="success-check"><svg viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg></div>
+                <h1 style="font-size:1.5rem;font-weight:700;margin-top:24px;">Transferência realizada</h1>
+                <p id="success-val" style="font-size:2rem;font-weight:700;margin-top:12px;">R$ 0,00</p>
+                <p id="success-name" style="font-size:1rem;margin-top:8px;opacity:0.9;">Para João Silva</p>
+            </div>
+            <div style="padding:20px;position:absolute;bottom:0;width:100%;">
+                <button class="purple-btn full-width" onclick="navigateTo('receipt-view')" style="padding:16px;font-size:1rem;background:rgba(255,255,255,0.2);color:#fff;">Ver comprovante</button>
+            </div>
+        </div>
+
+        <!-- Histórico: Visualizar comprovante antigo -->
+        <div id="history-receipt-view" class="view" style="background-color:var(--white);color:var(--black);">
+            <header class="receipt-header-white">
+                <button class="close-receipt-white" onclick="navigateTo('home-view')">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="#737373"/></svg>
+                </button>
+                <button class="share-receipt" onclick="shareReceipt()">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.66 16.42 22 18.08 22C19.74 22 21.08 20.66 21.08 19C21.08 17.34 19.74 16.08 18 16.08Z" fill="#737373"/></svg>
+                </button>
+            </header>
+            <div class="receipt-body-white" id="history-receipt-body"></div>
+        </div>
+
         <!-- Passo 5: Comprovante (COMPLETAMENTE ADAPTADO E EDITÁVEL - VERSÃO BRANCA OFICIAL) -->
         <div id="receipt-view" class="view" style="background-color: var(--white); color: var(--black);">
             <header class="receipt-header-white">
                 <button class="close-receipt-white" onclick="finishPix()">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="#737373"/></svg>
                 </button>
-                <button class="share-receipt" onclick="alert('Compartilhar indisponível neste simulador')">
+                <button class="share-receipt" onclick="shareReceipt()">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.66 16.42 22 18.08 22C19.74 22 21.08 20.66 21.08 19C21.08 17.34 19.74 16.08 18 16.08Z" fill="#737373"/></svg>
                 </button>
             </header>
