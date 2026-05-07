@@ -390,6 +390,7 @@ body {
     padding: 0 24px;
     overflow-y: auto;
     height: calc(100vh - 80px - env(safe-area-inset-top));
+    background-color: #fff;
 }
 
 .receipt-title-white {
@@ -780,3 +781,14 @@ body {
         transform: translateY(0);
     }
 }
+
+/* Success View */
+.success-content { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
+.success-check { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; display: flex; justify-content: center; align-items: center; }
+.success-check svg { width: 48px; height: 48px; }
+
+/* History Section */
+.history-item-ui { display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--gray-bg); cursor: pointer; }
+.history-item-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+.history-item-info p { font-size: 0.85rem; color: var(--gray-text); }
+.history-item-value { font-size: 0.95rem; font-weight: 600; text-align: right; }

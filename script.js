@@ -367,25 +367,54 @@ function generateReceipt() {
     navigateTo('success-view');
 }
 
-function shareReceipt() {
-    // Pega os valores atuais da tela (caso o usuário tenha editado algo manualmente)
-    const val = document.getElementById('receipt-val').innerText;
-    const name = document.getElementById('receipt-name').innerText;
-    const date = document.getElementById('receipt-datetime').innerText;
-    const transId = document.getElementById('receipt-id').innerText;
+async function shareReceipt() {
+    // Identifica qual view está ativa para tirar o print
+    const activeView = document.querySelector('.view.active');
+    const receiptArea = activeView.id === 'receipt-view' ? 
+        document.querySelector('#receipt-view .receipt-body-white') : 
+        document.querySelector('#history-receipt-view .receipt-body-white');
 
-    const shareText = `*Comprovante de Transferência Pix*\n\n*Valor:* ${val}\n*Para:* ${name}\n*Data:* ${date}\n*ID:* ${transId}\n\nEnviado via Nubank`;
+    if (!receiptArea) return;
 
-    if (navigator.share) {
-        // Usa o compartilhamento nativo do celular (WhatsApp, etc)
-        navigator.share({
-            title: 'Comprovante Pix',
-            text: shareText
-        }).catch(err => console.log('Erro ao compartilhar', err));
-    } else {
-        // Fallback: Abre o WhatsApp Web ou App direto com o texto
-        const encodedText = encodeURIComponent(shareText);
-        window.open(`https://wa.me/?text=${encodedText}`, '_blank');
+    // Feedback visual (opcional)
+    const shareBtn = document.querySelector('.view.active .share-receipt');
+    shareBtn.style.opacity = '0.5';
+
+    try {
+        // Gera o "print" da área do comprovante
+        const canvas = await html2canvas(receiptArea, {
+            backgroundColor: "#ffffff",
+            scale: 3, // Alta qualidade
+            logging: false,
+            useCORS: true
+        });
+
+        // Converte para Blob (imagem real)
+        canvas.toBlob(async (blob) => {
+            const file = new File([blob], 'comprovante-pix.png', { type: 'image/png' });
+
+            // Verifica se o navegador suporta compartilhar ARQUIVOS
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                await navigator.share({
+                    files: [file],
+                    title: 'Comprovante Pix',
+                    text: 'Enviado via Nubank'
+                });
+            } else {
+                // Se não suportar (ex: Desktop Chrome sem HTTPS), ele faz o download da imagem
+                const link = document.createElement('a');
+                link.download = 'comprovante-pix.png';
+                link.href = canvas.toDataURL("image/png");
+                link.click();
+                alert('O seu navegador não suporta compartilhamento direto de arquivos. A imagem foi baixada para você enviar manualmente.');
+            }
+        }, 'image/png');
+
+    } catch (err) {
+        console.error('Erro ao gerar imagem:', err);
+        alert('Erro ao gerar o comprovante em imagem.');
+    } finally {
+        shareBtn.style.opacity = '1';
     }
 }
 
