@@ -18,8 +18,21 @@
 <body>
     <div class="app-container">
         
+        <!-- FACE ID VIEW (Inicia aqui) -->
+        <div id="faceid-view" class="view active" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000;">
+            <div class="faceid-container">
+                <svg viewBox="0 0 100 100" class="faceid-icon">
+                    <path d="M25,30 Q25,25 30,25 L40,25 M60,25 L70,25 Q75,25 75,30 L75,40 M75,60 L75,70 Q75,75 70,75 L60,75 M40,75 L30,75 Q25,75 25,70 L25,60" fill="none" stroke="white" stroke-width="2"/>
+                    <path d="M40,45 Q40,40 45,40 L55,40 Q60,40 60,45 L60,55 Q60,60 55,60 L45,60 Q40,60 40,55 Z" fill="none" stroke="white" stroke-width="2"/>
+                    <path d="M35,45 L30,45 M65,45 L70,45 M50,35 L50,30 M50,65 L50,70" fill="none" stroke="white" stroke-width="2"/>
+                </svg>
+                <div class="faceid-line"></div>
+            </div>
+            <p style="color:white; margin-top:24px; font-weight:500; font-size:0.9rem;">Face ID</p>
+        </div>
+
         <!-- HOME VIEW -->
-        <div id="home-view" class="view active">
+        <div id="home-view" class="view">
             <!-- Header Section -->
             <header class="header">
                 <div class="header-top">
@@ -232,6 +245,11 @@
                     <h1 class="view-title">Para quem você quer transferir <span id="display-val-key" class="purple-text"></span>?</h1>
                     <p class="view-subtitle">Encontre um contato da sua lista ou digite um CPF, número de telefone, e-mail ou chave aleatória.</p>
                     <input type="text" id="pix-key-input" placeholder="Nome, CPF, CNPJ ou chave Pix" class="standard-input">
+                    
+                    <div id="recent-contacts-section" style="margin-top:32px; display:none;">
+                        <h4 style="font-size:0.875rem; color:var(--gray-text); margin-bottom:16px;">Contatos recentes</h4>
+                        <div id="recent-contacts-list"></div>
+                    </div>
                 </div>
                 <button class="fab-btn" onclick="goToConfirm()">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M5 13H16.17L11.29 17.88L12.71 19.3L19.41 12.59C19.79 12.21 19.79 11.58 19.41 11.2L12.71 4.5L11.3 5.91L16.17 10.8H5V13Z" fill="white"/></svg>

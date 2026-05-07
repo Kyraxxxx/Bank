@@ -15,7 +15,8 @@ let appData = {
     balance: "2456.78",
     invoice: "845.32",
     loan: "5000.00",
-    history: []
+    history: [],
+    contacts: []
 };
 
 // Initialize App
@@ -24,6 +25,19 @@ document.addEventListener('DOMContentLoaded', () => {
     updateUI();
     setupInputs();
     renderHistory();
+    renderContacts();
+    
+    // Inicia animação de Face ID
+    setTimeout(() => {
+        const faceLine = document.querySelector('.faceid-line');
+        if(faceLine) faceLine.style.animation = 'none';
+        const faceIcon = document.querySelector('.faceid-icon path:nth-child(2)');
+        if(faceIcon) faceIcon.setAttribute('stroke', '#00ff00');
+        
+        setTimeout(() => {
+            navigateTo('home-view');
+        }, 800);
+    }, 2500);
 });
 
 // Load data from localStorage
@@ -203,6 +217,44 @@ function renderHistory() {
     });
 }
 
+function renderContacts() {
+    const list = document.getElementById('recent-contacts-list');
+    const section = document.getElementById('recent-contacts-section');
+    if(!list || !appData.contacts || appData.contacts.length === 0) {
+        if(section) section.style.display = 'none';
+        return;
+    }
+
+    section.style.display = 'block';
+    list.innerHTML = '';
+    
+    appData.contacts.slice(0, 4).forEach(contact => {
+        const div = document.createElement('div');
+        div.className = 'recent-contact-item';
+        div.onclick = () => selectContact(contact);
+        
+        const initials = contact.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        
+        div.innerHTML = `
+            <div class="contact-avatar">${initials}</div>
+            <div class="contact-info">
+                <h5>${contact.name}</h5>
+                <p>CPF: ${contact.cpf}</p>
+            </div>
+        `;
+        list.appendChild(div);
+    });
+}
+
+function selectContact(contact) {
+    transferData.receiverName = contact.name;
+    transferData.receiverCpf = contact.cpf;
+    transferData.key = contact.key;
+    
+    document.getElementById('pix-key-input').value = contact.key;
+    document.querySelector('#pix-key-view .fab-btn').classList.add('active');
+}
+
 function viewHistoryReceipt(index) {
     const item = appData.history[index];
     const body = document.getElementById('history-receipt-body');
@@ -347,6 +399,18 @@ function generateReceipt() {
     };
     if(!appData.history) appData.history = [];
     appData.history.push(historyItem);
+
+    // Salva nos contatos se não existir
+    if(!appData.contacts) appData.contacts = [];
+    const exists = appData.contacts.find(c => c.cpf === transferData.receiverCpf);
+    if(!exists) {
+        appData.contacts.unshift({
+            name: transferData.receiverName,
+            cpf: transferData.receiverCpf,
+            key: transferData.key
+        });
+        renderContacts();
+    }
 
     // DEDUCT BALANCE!
     let currentBalanceNum = parseFloat(appData.balance);

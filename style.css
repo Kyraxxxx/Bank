@@ -792,3 +792,17 @@ body {
 .history-item-info h4 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
 .history-item-info p { font-size: 0.85rem; color: var(--gray-text); }
 .history-item-value { font-size: 0.95rem; font-weight: 600; text-align: right; }
+
+/* Face ID */
+.faceid-container { position: relative; width: 100px; height: 100px; }
+.faceid-icon { width: 100px; height: 100px; }
+.faceid-line { position: absolute; top: 0; left: 10%; width: 80%; height: 2px; background: #00ff00; box-shadow: 0 0 10px #00ff00; animation: scan 2s infinite ease-in-out; }
+@keyframes scan { 0%, 100% { top: 10%; } 50% { top: 90%; } }
+
+/* Recent Contacts */
+.recent-contact-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-bg); cursor: pointer; }
+.contact-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gray-bg); display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--purple); font-size: 0.9rem; }
+.contact-info h5 { font-size: 0.9rem; font-weight: 600; }
+.contact-info p { font-size: 0.8rem; color: var(--gray-text); }
+
+/* Hack para edição ao vivo ser invisível que é um input */
