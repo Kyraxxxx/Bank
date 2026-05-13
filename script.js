@@ -235,6 +235,9 @@ function showCurrentReceipt() {
 window.navigateTo = navigateTo;
 window.showCurrentReceipt = showCurrentReceipt;
 
+const randomNames = ["Marcos Oliveira", "Ana Beatriz Costa", "Ricardo Santos", "Juliana Pereira", "Felipe Almeida", "Camila Souza"];
+const randomCpfs = ["***.445.890-**", "***.123.678-**", "***.990.221-**", "***.556.778-**"];
+
 // View Navigation
 function navigateTo(viewId) {
     // If navigating to home, check bank
@@ -247,7 +250,9 @@ function navigateTo(viewId) {
     });
 
     const target = document.getElementById(viewId);
-    if(target) target.classList.add('active');
+    if(target) {
+        target.classList.add('active');
+    }
 
     if (viewId === 'home-view' || viewId === 'picpay-home-view' || viewId === 'investments-view' || viewId === 'shopping-view') {
         document.querySelectorAll('.bottom-nav .nav-item, .picpay-nav .picpay-nav-item').forEach(item => {
@@ -521,13 +526,6 @@ function getNubankReceiptHTML(item) {
 
 function getPicPayReceiptHTML(item) {
     return `
-        <div class="picpay-receipt-header" style="display:flex; justify-content:center; margin-bottom: 24px;">
-            <svg width="100" height="30" viewBox="0 0 100 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12.5 5C8.35786 5 5 8.35786 5 12.5C5 16.6421 8.35786 20 12.5 20C16.6421 20 20 16.6421 20 12.5C20 8.35786 16.6421 5 12.5 5ZM12.5 18C9.46243 18 7 15.5376 7 12.5C7 9.46243 9.46243 7 12.5 7C15.5376 7 18 9.46243 18 12.5C18 15.5376 15.5376 18 12.5 18Z" fill="#11C76F"/>
-                <path d="M25 5H30V15H35V20H25V5Z" fill="#111"/>
-                <text x="38" y="18" font-family="Inter" font-weight="700" font-size="14" fill="#111">PicPay</text>
-            </svg>
-        </div>
         <h1 class="picpay-receipt-title">Comprovante de Pix enviado</h1>
         <p class="picpay-receipt-label" contenteditable="true" spellcheck="false" style="margin-bottom: 0;">${item.dateTimeFull.split(' - ')[0]} - ${item.dateTimeFull.split(' - ')[1]}</p>
         
@@ -648,6 +646,12 @@ function generateReceipt() {
     
     const randomHex = Array.from({ length: 22 }, () => Math.floor(Math.random() * 16).toString(16)).join('').toLowerCase();
     const idStr = `E18236120${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${randomHex}`;
+
+    // Se não for um contato salvo, gera um nome/cpf aleatório para realismo
+    if (!transferData.receiverName || transferData.receiverName === "João Silva") {
+        transferData.receiverName = randomNames[Math.floor(Math.random() * randomNames.length)];
+        transferData.receiverCpf = randomCpfs[Math.floor(Math.random() * randomCpfs.length)];
+    }
 
     const item = {
         value: transferData.value,
