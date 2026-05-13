@@ -31,13 +31,17 @@ body {
 .app-container {
     width: 100%;
     max-width: 414px;
-    min-height: 100vh;
-    /* Força altura para browsers normais se comportarem como app mobile */
     height: 100vh;
     background-color: var(--white);
     position: relative;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+body.theme-picpay .app-container {
+    background-color: #F5F6F8;
 }
 
 /* Views */
@@ -46,17 +50,22 @@ body {
     top: 0;
     left: 0;
     width: 100%;
-    height: 100%;
     background: var(--white);
     transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     transform: translateX(100%);
     overflow-y: auto;
     z-index: 5;
+    pointer-events: none;
+}
+
+body.theme-picpay .view {
+    background: #F5F6F8;
 }
 
 .view.active {
     transform: translateX(0);
-    z-index: 1;
+    z-index: 1000;
+    pointer-events: all;
 }
 
 .dark-view {
@@ -359,15 +368,19 @@ body {
 }
 
 .receipt-header-white {
-    padding: 20px;
-    padding-top: calc(20px + env(safe-area-inset-top));
+    padding: 16px 20px;
+    padding-top: calc(16px + env(safe-area-inset-top));
     display: flex;
     justify-content: space-between;
     align-items: center;
+    background-color: #fff;
+    position: sticky;
+    top: 0;
+    z-index: 10;
 }
 
-.close-receipt-white,
-.share-receipt {
+.share-receipt,
+.download-receipt {
     background: none;
     border: none;
     cursor: pointer;
@@ -380,8 +393,14 @@ body {
     margin-right: -8px;
 }
 
+.download-receipt {
+    margin-left: 10px;
+}
+
 .close-receipt-white svg,
-.share-receipt svg {
+.share-receipt svg,
+.download-receipt svg,
+.back-btn svg {
     width: 24px;
     height: 24px;
 }
@@ -783,8 +802,25 @@ body {
 }
 
 /* Success View */
-.success-content { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 20px; text-align: center; }
-.success-check { width: 80px; height: 80px; border-radius: 50%; border: 4px solid #fff; display: flex; justify-content: center; align-items: center; }
+.success-content { 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    padding: 40px 20px; 
+    text-align: center;
+}
+.success-check { 
+    width: 80px; 
+    height: 80px; 
+    border-radius: 50%; 
+    border: 4px solid #fff; 
+    display: flex; 
+    justify-content: center; 
+    align-items: center; 
+    margin-bottom: 24px;
+}
 .success-check svg { width: 48px; height: 48px; }
 
 /* History Section */
@@ -797,12 +833,565 @@ body {
 .faceid-container { position: relative; width: 100px; height: 100px; }
 .faceid-icon { width: 100px; height: 100px; }
 .faceid-line { position: absolute; top: 0; left: 10%; width: 80%; height: 2px; background: #00ff00; box-shadow: 0 0 10px #00ff00; animation: scan 2s infinite ease-in-out; }
-@keyframes scan { 0%, 100% { top: 10%; } 50% { top: 90%; } }
+/* QR Scan View */
+.qr-scan-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100% - 150px);
+}
+
+.qr-scan-frame {
+    width: 250px;
+    height: 250px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 24px;
+    position: relative;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.qr-scan-frame::before,
+.qr-scan-frame::after,
+.qr-scan-frame .corner-tl,
+.qr-scan-frame .corner-tr {
+    /* Borders decoration could go here if we wanted custom corners */
+}
+
+.qr-scan-line {
+    position: absolute;
+    top: 0;
+    left: 5%;
+    width: 90%;
+    height: 2px;
+    background: #8A05BE;
+    box-shadow: 0 0 15px #8A05BE;
+    animation: scan-qr 2.5s infinite ease-in-out;
+}
+
+@keyframes scan-qr {
+    0%, 100% { top: 10%; }
+    50% { top: 90%; }
+}
+
 
 /* Recent Contacts */
 .recent-contact-item { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--gray-bg); cursor: pointer; }
-.contact-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--gray-bg); display: flex; align-items: center; justify-content: center; font-weight: 600; color: var(--purple); font-size: 0.9rem; }
-.contact-info h5 { font-size: 0.9rem; font-weight: 600; }
+.contact-avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--purple); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.9rem; }
+.theme-picpay .contact-avatar { background: #11C76F; }
+.contact-info h5 { font-size: 0.95rem; font-weight: 600; margin-bottom: 2px; }
 .contact-info p { font-size: 0.8rem; color: var(--gray-text); }
+
+/* PICPAY THEME CONSOLIDATED */
+body.theme-picpay .view {
+    background: #F5F6F8;
+}
+
+.picpay-header {
+    background-color: #11C76F;
+    color: white;
+    padding: 16px;
+    padding-top: calc(16px + env(safe-area-inset-top));
+    display: none; /* Controlled by body class */
+}
+
+body.theme-picpay .picpay-header {
+    display: block;
+}
+
+.picpay-header-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.picpay-profile-icon {
+    width: 38px;
+    height: 38px;
+    background-color: #E8F9F1;
+    color: #11C76F;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+
+.picpay-search-bar {
+    flex: 1;
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 20px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    font-size: 0.9rem;
+}
+
+.picpay-header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.icon-btn-picpay {
+    background: none;
+    border: none;
+    padding: 4px;
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.icon-btn-picpay .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: #FF3B30;
+    color: white;
+    font-size: 0.6rem;
+    padding: 2px 4px;
+    border-radius: 10px;
+    font-weight: 700;
+    min-width: 16px;
+}
+
+.picpay-bank-selector {
+    display: flex;
+    gap: 12px;
+}
+
+.picpay-bank-chip {
+    background: white;
+    color: #111;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.picpay-bank-chip-add {
+    background: rgba(255, 255, 255, 0.15);
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: white;
+}
+
+.picpay-main {
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: #F5F6F8;
+    flex: 1;
+}
+
+.picpay-balance-card {
+    background: #11C76F;
+    border-radius: 24px;
+    padding: 24px;
+    color: white;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(17, 199, 111, 0.2);
+}
+
+.picpay-card-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+
+.picpay-card-title {
+    font-size: 0.85rem;
+    opacity: 0.9;
+}
+
+.picpay-extrato-link {
+    font-size: 0.85rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.picpay-balance-container h2 {
+    font-size: 1.1rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.picpay-balance-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.picpay-balance-row .money-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.picpay-cdi-info {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    margin-bottom: 24px;
+}
+
+.picpay-guardar-btn {
+    width: 100%;
+    background: rgba(255, 255, 255, 0.2);
+    border: none;
+    border-radius: 16px;
+    padding: 14px;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.picpay-card-dots {
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+    margin-top: 20px;
+}
+
+.picpay-card-dots .dot {
+    width: 6px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.4);
+    border-radius: 50%;
+}
+
+.picpay-card-dots .dot.active {
+    background: white;
+    width: 14px;
+    border-radius: 10px;
+}
+
+.picpay-promo-banner {
+    background: #1C2335;
+    border-radius: 16px;
+    padding: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+    margin-top: 4px;
+}
+
+.picpay-promo-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.picpay-promo-content p {
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.picpay-services {
+    background: white;
+    border-radius: 20px;
+    padding: 20px;
+    margin-top: 8px;
+}
+
+.picpay-services h3 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #111;
+}
+
+.picpay-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+}
+
+.picpay-service-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+}
+
+.picpay-service-icon {
+    width: 100%;
+    aspect-ratio: 1/1;
+    border-radius: 16px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+}
+
+.picpay-service-icon.green { background: #11C76F; }
+.picpay-service-icon.gray { background: #F5F6F8; border: 1px solid #eee; }
+
+.picpay-service-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #444;
+}
+
+.picpay-badge-cdi {
+    position: absolute;
+    bottom: -8px;
+    background: #000;
+    color: white;
+    font-size: 0.5rem;
+    font-weight: 800;
+    padding: 2px 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+.picpay-cartao-section {
+    background: #F5F6F8;
+    border-radius: 16px;
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.picpay-cartao-text {
+    font-weight: 700;
+    font-size: 1rem;
+    color: #111;
+}
+
+.picpay-pagar-fab {
+    background: #111;
+    color: white;
+    border: none;
+    border-radius: 24px;
+    padding: 8px 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: 700;
+}
+
+.picpay-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    border-top: 1px solid #eee;
+    z-index: 1000;
+}
+
+.picpay-nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    color: #737373;
+}
+
+.picpay-nav-item span {
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.picpay-nav-item.active span {
+    color: #11C76F;
+}
+
+.picpay-nav-circle {
+    width: 48px;
+    height: 48px;
+    background: #11C76F;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: -24px;
+    box-shadow: 0 4px 10px rgba(17, 199, 111, 0.3);
+}
+
+.theme-picpay .inner-header .back-btn svg path { fill: #11C76F !important; }
+.theme-picpay .purple-btn { background-color: #11C76F; border-radius: 12px; }
+.theme-picpay .dot.filled { background-color: #11C76F; border-color: #11C76F; }
+.theme-picpay .fab-btn { background-color: #11C76F; }
+
+/* PICPAY RECEIPT STYLES */
+.picpay-receipt-title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #111;
+}
+
+.picpay-success-banner {
+    background-color: #E8F9F1;
+    border-radius: 12px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 16px;
+    margin-bottom: 24px;
+}
+
+.picpay-success-check {
+    background: #11C76F;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.picpay-success-banner span {
+    font-size: 0.85rem;
+    color: #111;
+    font-weight: 500;
+}
+
+.picpay-receipt-label {
+    font-size: 0.9rem;
+    color: #737373;
+    margin-bottom: 4px;
+}
+
+.picpay-receipt-val {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 24px;
+    color: #111;
+}
+
+.picpay-receipt-person {
+    margin-bottom: 24px;
+}
+
+.picpay-receipt-person h4 {
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 2px;
+    color: #111;
+}
+
+.picpay-receipt-person p {
+    font-size: 0.85rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+.picpay-info-box {
+    border: 1px solid #C5D1EB;
+    border-radius: 12px;
+    padding: 16px;
+    display: flex;
+    gap: 12px;
+    margin-top: 24px;
+    background: #fff;
+}
+
+.picpay-info-box p {
+    font-size: 0.8rem;
+    color: #555;
+    line-height: 1.4;
+}
+
+.picpay-receipt-footer {
+    text-align: center;
+    margin-top: 32px;
+    font-size: 0.85rem;
+    color: #737373;
+    padding-bottom: 120px;
+}
+
+.picpay-receipt-footer span {
+    color: #11C76F;
+    font-weight: 600;
+}
+
+.picpay-receipt-actions {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background: #F5F6F8;
+    padding: 20px;
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
+    display: flex;
+    justify-content: space-around;
+    gap: 12px;
+    z-index: 100;
+    border-top: 1px solid #eee;
+}
+
+.picpay-action-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    text-align: center;
+    flex: 1;
+}
+
+.picpay-action-icon {
+    width: 100%;
+    height: 56px;
+    background: #E8F1F0;
+    border-radius: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.picpay-action-item span {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #444;
+}
+
+/* Hack para edição ao vivo ser invisível que é um input */
+[contenteditable="true"]:focus {
+    outline: none;
+    background: rgba(138, 5, 190, 0.05);
+    border-radius: 4px;
+}
+
+/* Hack para quando o comprovante é PicPay, ocultar o header do Nubank se necessário ou adaptar */
+.theme-picpay .receipt-header-white {
+    background: #fff;
+}
+.theme-picpay .receipt-header-white .close-receipt-white::before {
+    content: 'Fechar';
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    color: #111;
+    margin-right: 8px;
+}
+.theme-picpay .receipt-header-white .close-receipt-white svg { display: none; }
+
 
 /* Hack para edição ao vivo ser invisível que é um input */

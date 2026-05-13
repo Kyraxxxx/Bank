@@ -14,12 +14,13 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="app-container">
         
-        <!-- FACE ID VIEW (Inicia aqui) -->
-        <div id="faceid-view" class="view active" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000;">
+        <!-- FACE ID VIEW (Inicia aqui) - DESATIVADO -->
+        <div id="faceid-view" class="view" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000;">
             <div class="faceid-container">
                 <svg viewBox="0 0 100 100" class="faceid-icon">
                     <path d="M25,30 Q25,25 30,25 L40,25 M60,25 L70,25 Q75,25 75,30 L75,40 M75,60 L75,70 Q75,75 70,75 L60,75 M40,75 L30,75 Q25,75 25,70 L25,60" fill="none" stroke="white" stroke-width="2"/>
@@ -32,7 +33,7 @@
         </div>
 
         <!-- HOME VIEW -->
-        <div id="home-view" class="view">
+        <div id="home-view" class="view active">
             <!-- Header Section -->
             <header class="header">
                 <div class="header-top">
@@ -61,7 +62,7 @@
             </header>
 
             <main class="main-content">
-                <section class="section account-section" onclick="navigateTo('transfer-view')">
+                <section class="section account-section" onclick="navigateTo('full-history-view')">
                     <div class="section-header">
                         <h2>Conta</h2>
                         <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="chevron-icon"><path d="M10 6L8.59 7.41L13.17 12L8.59 16.59L10 18L16 12L10 6Z" fill="#737373"/></svg>
@@ -161,6 +162,10 @@
                 <h1 class="view-title">Área Pix</h1>
                 <p class="view-subtitle">Envie e receba pagamentos a qualquer hora e dia da semana, sem pagar nada por isso.</p>
                 <div class="pix-menu">
+                    <div class="pix-item" onclick="startQrScan()">
+                        <div class="action-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3V9H5V5H9V3H3ZM5 15H3V21H9V19H5V15ZM19 19H15V21H21V15H19V19ZM15 3V5H19V9H21V3H15ZM7 7V11H11V7H7ZM13 7V11H17V7H13ZM7 13V17H11V13H7ZM13 13V15H15V13H13ZM15 15V17H17V15H15ZM13 15H13V17H15V15H13Z" fill="#111111"/></svg></div>
+                        <span>Ler QR Code</span>
+                    </div>
                     <div class="pix-item" onclick="navigateTo('pay-view')">
                         <div class="action-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3V21H21V3H3ZM5 19V5H7V19H5ZM9 19V5H11V19H9ZM13 19V5H15V19H13ZM17 19V5H19V19H17Z" fill="#111111"/></svg></div>
                         <span>Pagar</span>
@@ -182,6 +187,10 @@
             <div class="inner-content">
                 <h1 class="view-title">Pagar</h1>
                 <div class="list-menu">
+                    <div class="list-item" onclick="startQrScan()">
+                        <div class="list-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3V9H5V5H9V3H3ZM5 15H3V21H9V19H5V15ZM19 19H15V21H21V15H19V19ZM15 3V5H19V9H21V3H15ZM7 7V11H11V7H7ZM13 7V11H17V7H13ZM7 13V17H11V13H7ZM13 13V15H15V13H13ZM15 15V17H17V15H15ZM13 15H13V17H15V15H13Z" fill="#111111"/></svg></div>
+                        <div class="list-text"><h3>Ler QR Code</h3><p>Pague em segundos</p></div>
+                    </div>
                     <div class="list-item" onclick="navigateTo('transfer-view')">
                         <div class="list-icon"><svg viewBox="0 0 24 24" fill="none"><path d="M3 3V21H21V3H3ZM5 19V5H7V19H5ZM9 19V5H11V19H9ZM13 19V5H15V19H13ZM17 19V5H19V19H17Z" fill="#111111"/></svg></div>
                         <div class="list-text"><h3>Pagar com Pix</h3><p>Use QR Code ou chave</p></div>
@@ -314,19 +323,23 @@
                 <p id="success-val" style="font-size:2rem;font-weight:700;margin-top:12px;">R$ 0,00</p>
                 <p id="success-name" style="font-size:1rem;margin-top:8px;opacity:0.9;">Para João Silva</p>
             </div>
-            <div style="padding:20px;position:absolute;bottom:0;width:100%;">
-                <button class="purple-btn full-width" onclick="navigateTo('receipt-view')" style="padding:16px;font-size:1rem;background:rgba(255,255,255,0.2);color:#fff;">Ver comprovante</button>
+            <div style="padding:20px;position:absolute;bottom:0;width:100%;display:flex;flex-direction:column;gap:12px;padding-bottom:calc(20px + env(safe-area-inset-bottom));">
+                <button class="purple-btn full-width" onclick="showCurrentReceipt()" style="padding:16px;font-size:1rem;background:rgba(255,255,255,0.2);color:#fff;">Ver comprovante</button>
+                <button class="purple-btn full-width" onclick="navigateTo('home-view')" style="padding:16px;font-size:1rem;background:transparent;border:1px solid rgba(255,255,255,0.3);color:#fff;">Ir para o início</button>
             </div>
         </div>
 
         <!-- Histórico: Visualizar comprovante antigo -->
         <div id="history-receipt-view" class="view" style="background-color:var(--white);color:var(--black);">
             <header class="receipt-header-white">
-                <button class="close-receipt-white" onclick="navigateTo('home-view')">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="#737373"/></svg>
+                <button class="back-btn" onclick="navigateTo('home-view')">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="#737373"/></svg>
                 </button>
                 <button class="share-receipt" onclick="shareReceipt()">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.66 16.42 22 18.08 22C19.74 22 21.08 20.66 21.08 19C21.08 17.34 19.74 16.08 18 16.08Z" fill="#737373"/></svg>
+                </button>
+                <button class="download-receipt" onclick="downloadReceiptPDF()">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 9H15V3H9V9H5L12 16L19 9ZM5 18V20H19V18H5Z" fill="#737373"/></svg>
                 </button>
             </header>
             <div class="receipt-body-white" id="history-receipt-body"></div>
@@ -335,99 +348,173 @@
         <!-- Passo 5: Comprovante (COMPLETAMENTE ADAPTADO E EDITÁVEL - VERSÃO BRANCA OFICIAL) -->
         <div id="receipt-view" class="view" style="background-color: var(--white); color: var(--black);">
             <header class="receipt-header-white">
-                <button class="close-receipt-white" onclick="finishPix()">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M19 6.41L17.59 5L12 10.59L6.41 5L5 6.41L10.59 12L5 17.59L6.41 19L12 13.41L17.59 19L19 17.59L13.41 12L19 6.41Z" fill="#737373"/></svg>
+                <button class="back-btn" onclick="finishPix()">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="#737373"/></svg>
                 </button>
                 <button class="share-receipt" onclick="shareReceipt()">
                     <svg viewBox="0 0 24 24" fill="none"><path d="M18 16.08C17.24 16.08 16.56 16.38 16.04 16.85L8.91 12.7C8.96 12.47 9 12.24 9 12C9 11.76 8.96 11.53 8.91 11.3L15.96 7.19C16.5 7.69 17.21 8 18 8C19.66 8 21 6.66 21 5C21 3.34 19.66 2 18 2C16.34 2 15 3.34 15 5C15 5.24 15.04 5.47 15.09 5.7L8.04 9.81C7.5 9.31 6.79 9 6 9C4.34 9 3 10.34 3 12C3 13.66 4.34 15 6 15C6.79 15 7.5 14.69 8.04 14.19L15.16 18.34C15.11 18.55 15.08 18.77 15.08 19C15.08 20.66 16.42 22 18.08 22C19.74 22 21.08 20.66 21.08 19C21.08 17.34 19.74 16.08 18 16.08Z" fill="#737373"/></svg>
                 </button>
+                <button class="download-receipt" onclick="downloadReceiptPDF()">
+                    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M19 9H15V3H9V9H5L12 16L19 9ZM5 18V20H19V18H5Z" fill="#737373"/></svg>
+                </button>
             </header>
             
-            <div class="receipt-body-white">
-                <!-- Nubank Logo -->
-                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 8px;">
-                    <path d="M7.2795 5.4336c-1.1815 0-2.1846.4628-2.9432 1.252h-.002c-.0541-.0022-.1074-.002-.162-.002-1.5436 0-2.9925.8835-3.699 2.2559-.3088.5996-.4234 1.2442-.459 1.9003-.0321.589 0 1.1863 0 1.7696v5.6523H3.184s.0022-2.784 0-5.1777c-.0014-1.6112-.0118-3.0471 0-3.3418.056-1.3937.4372-2.3053 1.1484-3.0508 2.3585.0018 3.8852 1.6091 3.9705 4.168.0196.5874.0254 3.7304.0254 3.7304v3.672h3.1678v-4.965c0-1.5007.0127-2.8006-.0918-3.6952-.292-2.5-1.821-4.168-4.1248-4.168zm8.3903.3008l-3.166.0039v4.9648c0 1.5009-.0127 2.8007.0919 3.6953.2921 2.5001 1.821 4.168 4.1248 4.168 1.1815 0 2.1846-.4628 2.9432-1.252.0003-.0003.0016.0004.002 0 .0542.0023.1093.002.164.002 1.5435 0 2.9905-.8835 3.6971-2.2558.3088-.5997.4233-1.2442.459-1.9004.032-.5889 0-1.1862 0-1.7695V5.7383H20.816s-.0022 2.784 0 5.1777c.0015 1.6113.0119 3.047 0 3.3418-.056 1.3935-.4372 2.3053-1.1483 3.0508-2.3586-.0018-3.8853-1.6091-3.9706-4.168-.0196-.5874-.0273-2.0437-.0273-3.7324Z" fill="#737373"/>
-                </svg>
+            <div class="receipt-body-white" id="receipt-body"></div>
+        </div>
 
-                <h1 class="receipt-title-white">Comprovante de<br>transferência</h1>
-                <p class="receipt-date-white editable-receipt" id="receipt-datetime" contenteditable="true" spellcheck="false">01/08/2026 - 14:30:00</p>
-                
-                <div class="receipt-row mt-30">
-                    <p class="receipt-label">Valor</p>
-                    <p class="receipt-val-white editable-receipt" id="receipt-val" contenteditable="true" spellcheck="false">R$ 0,00</p>
-                </div>
-                
-                <div class="receipt-row">
-                    <p class="receipt-label">Tipo de transferência</p>
-                    <p class="receipt-val-gray">Pix</p>
-                </div>
 
-                <div class="receipt-divider-light"></div>
 
-                <div class="receipt-section-title">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 4H4C2.89 4 2.01 4.89 2.01 6L2 18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8ZM12 16L8 12H11V10H13V12H16L12 16Z" fill="#111111"/></svg>
-                    <span>Destino</span>
-                </div>
-
-                <div class="receipt-details">
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Nome</p>
-                        <p class="receipt-value-bold editable-receipt" id="receipt-name" contenteditable="true" spellcheck="false">Nome do Recebedor</p>
+        <!-- PICPAY HOME VIEW -->
+        <div id="picpay-home-view" class="view">
+            <header class="picpay-header">
+                <div class="picpay-header-top">
+                    <div class="picpay-profile-icon" id="picpay-profile-btn" style="cursor: pointer;">RB</div>
+                    <div class="picpay-search-bar" onclick="alert('Busca em breve')">
+                        <svg viewBox="0 0 24 24" fill="none" width="20"><path d="M15.5 14h-.79l-.28-.27A6.471 6.471 0 0 0 16 9.5 6.5 6.5 0 1 0 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z" fill="white"/></svg>
+                        <span>Buscar</span>
                     </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">CPF/CNPJ</p>
-                        <p class="receipt-value-bold editable-receipt" id="receipt-cpf" contenteditable="true" spellcheck="false">***.123.456-**</p>
-                    </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Chave Pix</p>
-                        <p class="receipt-value-bold editable-receipt" id="receipt-key" contenteditable="true" spellcheck="false">123.456.789-00</p>
-                    </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Instituição</p>
-                        <p class="receipt-value-bold editable-receipt" contenteditable="true" spellcheck="false">BCO SANTANDER (BRASIL) S.A.</p>
-                    </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Agência</p>
-                        <p class="receipt-value-bold editable-receipt" contenteditable="true" spellcheck="false">0001</p>
-                    </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Conta</p>
-                        <p class="receipt-value-bold editable-receipt" contenteditable="true" spellcheck="false">123456-7</p>
+                    <div class="picpay-header-actions">
+                        <button class="icon-btn-picpay" onclick="openFeature('Ajuda', '❓')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="24"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3M12 17h.01"/></svg></button>
+                        <button class="icon-btn-picpay" onclick="openFeature('Mensagens', '💬')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><span class="badge">99+</span></button>
+                        <button class="icon-btn-picpay" onclick="openFeature('Notificações', '🔔')"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" width="24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="badge red">38</span></button>
                     </div>
                 </div>
-
-                <div class="receipt-divider-light"></div>
-                
-                <div class="receipt-section-title">
-                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 4H4C2.89 4 2.01 4.89 2.01 6L2 18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8ZM12 10L16 14H13V16H11V14H8L12 10Z" fill="#111111"/></svg>
-                    <span>Origem</span>
-                </div>
-
-                <div class="receipt-details">
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Nome</p>
-                        <p class="receipt-value-bold editable-receipt" id="receipt-origin-name" contenteditable="true" spellcheck="false">Seu Nome</p>
+                <div class="picpay-bank-selector">
+                    <div class="picpay-bank-chip active" onclick="alert('Conta PicPay selecionada')">
+                        <div class="picpay-mini-logo">P</div>
+                        <span>PicPay</span>
                     </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">CPF</p>
-                        <p class="receipt-value-bold editable-receipt" contenteditable="true" spellcheck="false">***.987.654-**</p>
-                    </div>
-                    <div class="receipt-row-detail">
-                        <p class="receipt-label">Instituição</p>
-                        <p class="receipt-value-bold editable-receipt" contenteditable="true" spellcheck="false">NU PAGAMENTOS - IP</p>
+                    <div class="picpay-bank-chip-add" onclick="alert('Adicionar conta em breve')">
+                        <svg viewBox="0 0 24 24" fill="white" width="16"><path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/></svg>
+                        <span>Adicionar conta</span>
                     </div>
                 </div>
+            </header>
 
-                <div class="receipt-divider-light"></div>
-                
-                <div class="receipt-details">
-                    <div class="receipt-row-detail" style="flex-direction: column; align-items: flex-start;">
-                        <p class="receipt-label" style="margin-bottom: 8px;">ID da transação</p>
-                        <p class="receipt-value-bold transaction-id-white editable-receipt" id="receipt-id" contenteditable="true" spellcheck="false">E0000000020260801123456789ABCDEF</p>
+            <main class="picpay-main">
+                <section class="picpay-balance-card">
+                    <div class="picpay-card-header">
+                        <span class="picpay-card-title">Conta</span>
+                        <div class="picpay-extrato-link" onclick="navigateTo('full-history-view')" style="cursor: pointer;">Ver extrato <svg viewBox="0 0 24 24" width="16"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z" fill="white"/></svg></div>
                     </div>
+                    <div class="picpay-balance-container">
+                        <h2>Saldo em conta</h2>
+                        <div class="picpay-balance-row">
+                            <span class="money-value" id="picpay-balance-display">R$ 1,06</span>
+                            <div class="eye-toggle-picpay" onclick="toggleBalance()" style="cursor: pointer;">
+                                <svg class="eye-icon-dynamic" viewBox="0 0 24 24" fill="white" width="22" style="opacity: 0.8;"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
+                            </div>
+                        </div>
+                        <p class="picpay-cdi-info">Rendendo 102% do CDI</p>
+                    </div>
+                    <button class="picpay-guardar-btn" onclick="alert('Funcionalidade Guardar em breve')">Guardar</button>
+                    <div class="picpay-card-dots">
+                        <span class="dot active"></span>
+                        <span class="dot"></span>
+                    </div>
+                </section>
+
+                <div class="picpay-promo-banner" onclick="alert('Banner promocional clicado')">
+                    <div class="picpay-promo-content">
+                        <img src="https://picpay.com/favicon.ico" alt="Icon" width="28">
+                        <p>No PicPay seu voto vale mais!</p>
+                    </div>
+                    <svg viewBox="0 0 24 24" width="20" fill="white"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
                 </div>
-                
-                <div style="height: 40px;"></div>
+
+                <section class="picpay-services">
+                    <h3>Pro dia a dia</h3>
+                    <div class="picpay-grid">
+                        <div class="picpay-service-item" onclick="navigateTo('pix-view')">
+                            <div class="picpay-service-icon green"><svg viewBox="0 0 24 24" fill="white" width="24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71L12 2z"/></svg></div>
+                            <span>Pix</span>
+                        </div>
+                        <div class="picpay-service-item" onclick="openFeature('Pagamentos', '📑')">
+                            <div class="picpay-service-icon gray"><svg viewBox="0 0 24 24" fill="#111" width="24"><path d="M3 3v18h18V3H3zm16 16H5V5h14v14zM11 7h2v10h-2V7zM7 10h2v7H7v-7zm8 3h2v4h-2v-4z"/></svg></div>
+                            <span>Pagamentos</span>
+                        </div>
+                        <div class="picpay-service-item" onclick="openFeature('Recarga', '📱')">
+                            <div class="picpay-service-icon gray"><svg viewBox="0 0 24 24" fill="#111" width="24"><path d="M17 1.01L7 1c-1.1 0-2 .9-2 2v18c0 1.1.9 2 2 2h10c1.1 0 2-.9 2-2V3c0-1.1-.9-1.99-2-1.99zM17 19H7V5h10v14z"/></svg></div>
+                            <span>Recarga de Celular</span>
+                        </div>
+                        <div class="picpay-service-item" onclick="openFeature('Cofrinhos', '🐷')">
+                            <div class="picpay-service-icon gray">
+                                <svg viewBox="0 0 24 24" fill="#111" width="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                                <span class="picpay-badge-cdi">RENDE 102% DO CDI</span>
+                            </div>
+                            <span>Cofrinhos</span>
+                        </div>
+                    </div>
+                </section>
+
+                <div class="picpay-cartao-section" onclick="openFeature('Meus Cartões', '💳')">
+                    <div class="picpay-cartao-text">Cartão</div>
+                    <button class="picpay-pagar-fab" onclick="event.stopPropagation(); startQrScan()">
+                        <span>Pagar</span>
+                        <svg viewBox="0 0 24 24" fill="white" width="20"><path d="M3 3h8v8H3V3zm10 0h8v8h-8V3zM3 13h8v8H3v-8zm15 0h3v3h-3v-3zM13 13h3v3h-3v-3zm3 3h3v3h-3v-3zm-3 3h3v3h-3v-3zm3 0h3v3h-3v-3zm3-3h3v3h-3v-3z"/></svg>
+                    </button>
+                </div>
+                <section class="picpay-services" style="margin-top: 24px;">
+                    <h3>Atividades recentes</h3>
+                    <div id="picpay-history-list"></div>
+                    <p id="picpay-no-history" style="font-size: 0.85rem; color: #737373; text-align: center; margin-top: 10px;">Nenhuma atividade recente.</p>
+                </section>
+
+                <div style="height: 100px;"></div>
+            </main>
+
+            <nav class="picpay-nav">
+                <div class="picpay-nav-item active" onclick="navigateTo('home-view')"><div class="picpay-nav-circle"><svg viewBox="0 0 24 24" fill="white" width="24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></div></div>
+                <div class="picpay-nav-item" onclick="openFeature('Meus Cartões', '💳')"><svg viewBox="0 0 24 24" fill="#737373" width="24"><path d="M20 4H4c-1.11 0-1.99.89-1.99 2L2 18c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V6c0-1.11-.89-2-2-2zm0 14H4v-6h16v6zm0-10H4V6h16v2z"/></svg><span>Cartão</span></div>
+                <div class="picpay-nav-item" onclick="openFeature('Empréstimos', '💸')"><svg viewBox="0 0 24 24" fill="#737373" width="24"><path d="M11.8 2.1L3 8.9V21h18V8.9l-8.2-6.8c-.6-.4-1.4-.4-2 0zM19 19H5v-9l7-5.8 7 5.8v9zm-10.1-5.1l1.4 1.4 1.7-1.7 1.7 1.7 1.4-1.4-1.7-1.7 1.7-1.7-1.4-1.4-1.7 1.7-1.7-1.7-1.4 1.4 1.7 1.7-1.7 1.7z"/></svg><span>Empréstimos</span></div>
+                <div class="picpay-nav-item" onclick="openFeature('PicPay Shop', '🛍️')"><svg viewBox="0 0 24 24" fill="#737373" width="24"><path d="M20 6h-4V4c0-1.11-.89-2-2-2h-4c-1.11 0-2 .89-2 2v2H4c-1.11 0-1.99.89-1.99 2L2 19c0 1.11.89 2 2 2h16c1.11 0 2-.89 2-2V8c0-1.11-.89-2-2-2zm-8-2h4v2h-4V4z"/></svg><span>Shop</span></div>
+                <div class="picpay-nav-item" id="picpay-menu-btn" style="cursor: pointer;"><svg viewBox="0 0 24 24" fill="#737373" width="24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg><span>Menu</span></div>
+            </nav>
+        </div>
+
+        <!-- FULL HISTORY VIEW (Extrato) -->
+        <div id="full-history-view" class="view">
+            <header class="inner-header">
+                <button class="back-btn" onclick="navigateTo('home-view')">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="#737373"/></svg>
+                </button>
+                <h3 style="margin-left: 16px; font-weight: 600;">Extrato</h3>
+            </header>
+            <div class="inner-content">
+                <div id="full-history-list"></div>
+                <p id="full-no-history" style="text-align:center; color:#737373; margin-top:40px;">Nenhuma movimentação encontrada.</p>
+            </div>
+        </div>
+
+        <!-- GENERIC FEATURE VIEW -->
+        <div id="feature-view" class="view">
+            <header class="inner-header">
+                <button class="back-btn" onclick="navigateTo('home-view')">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="#737373"/></svg>
+                </button>
+                <h3 id="feature-title" style="margin-left: 16px; font-weight: 600;">Serviço</h3>
+            </header>
+            <div class="inner-content" style="display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center;">
+                <div id="feature-icon" style="font-size: 4rem; margin-bottom: 24px;">⚙️</div>
+                <h2 id="feature-name" style="margin-bottom: 12px;">Nome do Serviço</h2>
+                <p style="color:#737373; padding: 0 40px;">Esta funcionalidade está sendo processada e estará disponível em breve com integração total aos seus dados.</p>
+                <button class="purple-btn" style="margin-top: 32px; padding: 12px 32px;" onclick="navigateTo('home-view')">Voltar</button>
+            </div>
+        </div>
+
+        <!-- NOVO: QR SCAN VIEW -->
+        <div id="qr-scan-view" class="view" style="background:#000;">
+            <header class="inner-header">
+                <button class="back-btn" onclick="navigateTo('home-view')">
+                    <svg viewBox="0 0 24 24" fill="none"><path d="M20 11H7.83L13.42 5.41L12 4L4 12L12 20L13.41 18.59L7.83 13H20V11Z" fill="white"/></svg>
+                </button>
+                <h3 style="color:white; margin-left:16px; font-weight:500;">Escaneie o QR Code</h3>
+            </header>
+            <div class="qr-scan-container">
+                <div class="qr-scan-frame">
+                    <div class="qr-scan-line"></div>
+                </div>
+                <p style="color:white; margin-top:32px; text-align:center; opacity:0.8; padding:0 40px;">Aponte a câmera para o QR Code para pagar.</p>
             </div>
         </div>
 
@@ -442,10 +529,23 @@
                     <label>Seu Nome</label>
                     <input type="text" id="admin-name">
                 </div>
+
+                <div class="input-group">
+                    <label>Banco Ativo</label>
+                    <select id="admin-bank" class="standard-input" style="margin-top: 0; padding: 8px;">
+                        <option value="nubank">Nubank</option>
+                        <option value="picpay">PicPay</option>
+                    </select>
+                </div>
                 
                 <div class="input-group">
-                    <label>Saldo da Conta (ex: 2.500,00)</label>
-                    <input type="text" id="admin-balance" inputmode="decimal">
+                    <label>Saldo Nubank (ex: 2.500,00)</label>
+                    <input type="text" id="admin-balance-nubank" inputmode="decimal">
+                </div>
+
+                <div class="input-group">
+                    <label>Saldo PicPay (ex: 1.06)</label>
+                    <input type="text" id="admin-balance-picpay" inputmode="decimal">
                 </div>
 
                 <div class="input-group">
@@ -461,6 +561,7 @@
                 <button class="purple-btn full-width" onclick="saveAdminData()" style="padding: 16px; margin-top: 10px;">Salvar Alterações</button>
             </div>
         </div>
+
     </div>
     <script src="script.js"></script>
 </body>

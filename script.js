@@ -12,9 +12,11 @@ let transferData = {
 // Data structure
 let appData = {
     userName: "Usuário",
-    balance: "2456.78",
+    balanceNubank: "2456.78",
+    balancePicPay: "1.06", // Identical to screenshot initial
     invoice: "845.32",
     loan: "5000.00",
+    currentBank: "nubank", // Default
     history: [],
     contacts: []
 };
@@ -22,29 +24,126 @@ let appData = {
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
     loadData();
+    applyTheme();
     updateUI();
     setupInputs();
     renderHistory();
     renderContacts();
     
-    // Inicia animação de Face ID
-    setTimeout(() => {
-        const faceLine = document.querySelector('.faceid-line');
-        if(faceLine) faceLine.style.animation = 'none';
-        const faceIcon = document.querySelector('.faceid-icon path:nth-child(2)');
-        if(faceIcon) faceIcon.setAttribute('stroke', '#00ff00');
-        
-        setTimeout(() => {
-            navigateTo('home-view');
-        }, 800);
-    }, 2500);
+    // Configura botões de abrir admin
+    const profileBtn = document.getElementById('picpay-profile-btn');
+    if(profileBtn) profileBtn.onclick = openAdmin;
+    
+    const picpayMenuBtn = document.getElementById('picpay-menu-btn');
+    if(picpayMenuBtn) picpayMenuBtn.onclick = openAdmin;
+
+    // Face ID removido - Navega direto para home
+    if(appData.currentBank === 'picpay') {
+        navigateTo('picpay-home-view');
+    } else {
+        navigateTo('home-view');
+    }
 });
+
+// THEME LOGIC
+function applyTheme() {
+    if (appData.currentBank === 'picpay') {
+        document.body.classList.add('theme-picpay');
+        // Update profile icon initials
+        const profileBtn = document.getElementById('picpay-profile-btn');
+        if(profileBtn && appData.userName) {
+            profileBtn.innerText = appData.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+        }
+    } else {
+        document.body.classList.remove('theme-picpay');
+    }
+}
+
+// QR CODE SCAN SIMULATION
+function startQrScan() {
+    navigateTo('qr-scan-view');
+    
+    // Simula o tempo de "focando" a câmera
+    setTimeout(() => {
+        handleQrScan();
+    }, 3000);
+}
+
+function handleQrScan() {
+    // Dados aleatórios para o pagamento via QR Code
+    transferData.numericValue = Math.floor(Math.random() * 500) + 50.50;
+    transferData.value = transferData.numericValue.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    
+    let fakeNames = ["Restaurante Central", "Supermercado Extra", "Posto Ipiranga", "Farmácia Pague Menos"];
+    transferData.receiverName = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+    transferData.receiverCpf = "**.***.***/***-**";
+    transferData.key = "qrcode-pagamento-simulado-" + Math.floor(Math.random() * 100000);
+    
+    document.getElementById('confirm-val').innerText = `R$ ${transferData.value}`;
+    document.getElementById('confirm-name').innerText = transferData.receiverName;
+    
+    navigateTo('pix-confirm-view');
+}
+
+// PDF DOWNLOAD LOGIC
+async function downloadReceiptPDF() {
+    const { jsPDF } = window.jspdf;
+    
+    // Identifica qual view está ativa para tirar o print
+    const activeView = document.querySelector('.view.active');
+    const receiptArea = activeView.id === 'receipt-view' ? 
+        document.querySelector('#receipt-view .receipt-body-white') : 
+        document.querySelector('#history-receipt-view .receipt-body-white');
+
+    if (!receiptArea) return;
+
+    // Feedback visual
+    const downloadBtn = document.querySelector('.view.active .download-receipt');
+    if(downloadBtn) downloadBtn.style.opacity = '0.5';
+
+    try {
+        // Gera o canvas do comprovante
+        const canvas = await html2canvas(receiptArea, {
+            backgroundColor: "#ffffff",
+            scale: 2, // Boa qualidade para PDF
+            logging: false,
+            useCORS: true
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'px',
+            format: [canvas.width / 2, canvas.height / 2]
+        });
+
+        pdf.addImage(imgData, 'PNG', 0, 0, canvas.width / 2, canvas.height / 2);
+        const filename = appData.currentBank === 'picpay' ? 'comprovante-picpay.pdf' : 'comprovante-nubank.pdf';
+        pdf.save(filename);
+
+    } catch (err) {
+        console.error('Erro ao gerar PDF:', err);
+        alert('Erro ao gerar o comprovante em PDF.');
+    } finally {
+        if(downloadBtn) downloadBtn.style.opacity = '1';
+    }
+}
 
 // Load data from localStorage
 function loadData() {
     const savedData = localStorage.getItem('nubankCloneData');
     if (savedData) {
-        appData = JSON.parse(savedData);
+        const parsed = JSON.parse(savedData);
+        
+        // Migração de dados para balanço separado
+        if(parsed.balance && !parsed.balanceNubank) {
+            parsed.balanceNubank = parsed.balance;
+            delete parsed.balance;
+        }
+        
+        appData = { ...appData, ...parsed };
+        if(!appData.currentBank) appData.currentBank = "nubank";
+        if(!appData.balancePicPay) appData.balancePicPay = "1.06";
     }
 }
 
@@ -56,15 +155,46 @@ function formatMoney(value) {
 }
 
 // Update UI with current data
-function updateUI() {
-    document.getElementById('user-name-display').innerText = `Olá, ${appData.userName}`;
+function openFeature(name, icon) {
+    const titleEl = document.getElementById('feature-title');
+    const nameEl = document.getElementById('feature-name');
+    const iconEl = document.getElementById('feature-icon');
+    if(titleEl) titleEl.innerText = name;
+    if(nameEl) nameEl.innerText = name;
+    if(iconEl) iconEl.innerText = icon;
+    navigateTo('feature-view');
+}
 
-    document.getElementById('balance-display').innerText = formatMoney(appData.balance);
-    document.getElementById('invoice-display').innerText = formatMoney(appData.invoice);
-    document.getElementById('loan-display').innerText = formatMoney(appData.loan);
+function updateUI() {
+    const nameDisplays = ['user-name-display'];
+    nameDisplays.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.innerText = id.includes('greeting') || id === 'user-name-display' ? `Olá, ${appData.userName}` : appData.userName;
+    });
+
+    const balanceNubankDisplay = document.getElementById('balance-display');
+    if(balanceNubankDisplay) balanceNubankDisplay.innerText = formatMoney(appData.balanceNubank);
+
+    const balancePicPayDisplay = document.getElementById('picpay-balance-display');
+    if(balancePicPayDisplay) balancePicPayDisplay.innerText = formatMoney(appData.balancePicPay);
+
+    // Update PicPay profile icon initials
+    const picpayProfileBtn = document.getElementById('picpay-profile-btn');
+    if(picpayProfileBtn && appData.userName) {
+        picpayProfileBtn.innerText = appData.userName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
+    }
+
+    const invoiceEl = document.getElementById('invoice-display');
+    if(invoiceEl) invoiceEl.innerText = formatMoney(appData.invoice);
+    
+    const loanEl = document.getElementById('loan-display');
+    if(loanEl) loanEl.innerText = formatMoney(appData.loan);
 
     const transferBalance = document.getElementById('transfer-balance');
-    if (transferBalance) transferBalance.innerText = formatMoney(appData.balance);
+    if (transferBalance) {
+        const currentBal = appData.currentBank === 'picpay' ? appData.balancePicPay : appData.balanceNubank;
+        transferBalance.innerText = formatMoney(currentBal);
+    }
 
     if (!isBalanceVisible) {
         applyBlur();
@@ -75,7 +205,6 @@ function updateUI() {
 function setupInputs() {
     const valInput = document.getElementById('transfer-input-val');
     if (valInput) {
-        // Simple mask for iOS (doesn't block typing but auto-formats if we wanted. For now just standard inputmode=decimal)
         valInput.addEventListener('input', (e) => {
             const btn = document.querySelector('#transfer-view .fab-btn');
             if (e.target.value.length > 0) {
@@ -99,23 +228,41 @@ function setupInputs() {
     }
 }
 
+function showCurrentReceipt() {
+    navigateTo('receipt-view');
+}
+
+window.navigateTo = navigateTo;
+window.showCurrentReceipt = showCurrentReceipt;
+
 // View Navigation
 function navigateTo(viewId) {
+    // If navigating to home, check bank
+    if(viewId === 'home-view' || viewId === 'picpay-home-view') {
+        viewId = appData.currentBank === 'picpay' ? 'picpay-home-view' : 'home-view';
+    }
+
     document.querySelectorAll('.view').forEach(view => {
         view.classList.remove('active');
     });
 
-    document.getElementById(viewId).classList.add('active');
+    const target = document.getElementById(viewId);
+    if(target) target.classList.add('active');
 
-    if (viewId === 'home-view' || viewId === 'investments-view' || viewId === 'shopping-view') {
-        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+    if (viewId === 'home-view' || viewId === 'picpay-home-view' || viewId === 'investments-view' || viewId === 'shopping-view') {
+        document.querySelectorAll('.bottom-nav .nav-item, .picpay-nav .picpay-nav-item').forEach(item => {
             item.classList.remove('active');
         });
 
         const items = document.querySelectorAll('.bottom-nav .nav-item');
-        if (viewId === 'home-view') items[0].classList.add('active');
-        if (viewId === 'investments-view') items[1].classList.add('active');
-        if (viewId === 'shopping-view') items[2].classList.add('active');
+        const picpayItems = document.querySelectorAll('.picpay-nav .picpay-nav-item');
+        
+        if (viewId === 'home-view' || viewId === 'picpay-home-view') {
+            if(items[0]) items[0].classList.add('active');
+            if(picpayItems[0]) picpayItems[0].classList.add('active');
+        }
+        if (viewId === 'investments-view') if(items[1]) items[1].classList.add('active');
+        if (viewId === 'shopping-view') if(items[2]) items[2].classList.add('active');
     }
 }
 
@@ -125,14 +272,20 @@ const eyeClosedPath = "M12 7C9.24 7 7 9.24 7 12C7 14.76 9.24 17 12 17C14.76 17 1
 
 function toggleBalance() {
     isBalanceVisible = !isBalanceVisible;
-    const eyeIcon = document.querySelector('#eye-icon path');
+    const eyeIcons = [
+        document.querySelector('#eye-icon path'),
+        ...document.querySelectorAll('.eye-icon-dynamic path')
+    ];
 
     if (isBalanceVisible) {
-        eyeIcon.setAttribute('d', eyeOpenPath);
-        document.querySelectorAll('.money-value').forEach(el => el.classList.remove('blur-text'));
-        updateUI();
+        eyeIcons.forEach(icon => { if(icon) icon.setAttribute('d', eyeOpenPath); });
+        document.querySelectorAll('.money-value').forEach(el => {
+            el.classList.remove('blur-text');
+            // Restore original value from appData
+            updateUI();
+        });
     } else {
-        eyeIcon.setAttribute('d', eyeClosedPath);
+        eyeIcons.forEach(icon => { if(icon) icon.setAttribute('d', eyeClosedPath); });
         applyBlur();
     }
 }
@@ -149,7 +302,6 @@ function goToPixKey() {
     const valInput = document.getElementById('transfer-input-val').value;
     if (!valInput) return;
 
-    // Parse value replacing comma with dot for math
     let cleanVal = valInput.replace(',', '.');
     transferData.numericValue = parseFloat(cleanVal);
 
@@ -183,36 +335,98 @@ function goToPassword() {
 }
 
 function renderHistory() {
-    const list = document.getElementById('history-list');
-    const noHistory = document.getElementById('no-history');
-    if(!list) return;
+    const listNubank = document.getElementById('history-list');
+    const listPicPay = document.getElementById('picpay-history-list');
+    const noHistoryNubank = document.getElementById('no-history');
+    const noHistoryPicPay = document.getElementById('picpay-no-history');
+    
+    if(!listNubank || !listPicPay) return;
 
-    list.innerHTML = '';
+    listNubank.innerHTML = '';
+    listPicPay.innerHTML = '';
     
     if (appData.history.length === 0) {
-        noHistory.style.display = 'block';
+        if(noHistoryNubank) noHistoryNubank.style.display = 'block';
+        if(noHistoryPicPay) noHistoryPicPay.style.display = 'block';
         return;
     }
     
-    noHistory.style.display = 'none';
+    if(noHistoryNubank) noHistoryNubank.style.display = 'none';
+    if(noHistoryPicPay) noHistoryPicPay.style.display = 'none';
     
-    // Mostra do mais recente para o mais antigo
     [...appData.history].reverse().forEach((item, index) => {
         const realIndex = appData.history.length - 1 - index;
-        const div = document.createElement('div');
-        div.className = 'history-item-ui';
-        div.onclick = () => viewHistoryReceipt(realIndex);
         
-        div.innerHTML = `
+        // Item Nubank
+        const divNu = document.createElement('div');
+        divNu.className = 'history-item-ui';
+        divNu.onclick = () => viewHistoryReceipt(realIndex);
+        divNu.innerHTML = `
             <div class="history-item-info">
                 <h4>Transferência enviada</h4>
                 <p>${item.receiverName}</p>
                 <p>${item.date}</p>
             </div>
-            <div class="history-item-value">
-                - ${formatMoney(item.numericValue.toString().replace('.', ','))}
-            </div>
+            <div class="history-item-value">- ${formatMoney(item.numericValue.toString().replace('.', ','))}</div>
         `;
+        listNubank.appendChild(divNu);
+
+        // Item PicPay
+        const divPP = document.createElement('div');
+        divPP.className = 'history-item-ui';
+        divPP.style.borderBottom = '1px solid #eee';
+        divPP.style.padding = '12px 0';
+        divPP.onclick = () => viewHistoryReceipt(realIndex);
+        divPP.innerHTML = `
+            <div class="history-item-info">
+                <h4 style="font-size:0.95rem; color:#111;">Pagamento para ${item.receiverName}</h4>
+                <p style="font-size:0.8rem; color:#737373;">${item.dateTimeFull.split(' - ')[0]}</p>
+            </div>
+            <div class="history-item-value" style="color:#111; font-weight:700;">- ${formatMoney(item.numericValue.toString().replace('.', ','))}</div>
+        `;
+        listPicPay.appendChild(divPP);
+    });
+
+    renderFullHistory();
+}
+
+function renderFullHistory() {
+    const list = document.getElementById('full-history-list');
+    const noHistory = document.getElementById('full-no-history');
+    if(!list) return;
+
+    if(appData.history.length === 0) {
+        list.innerHTML = '';
+        noHistory.style.display = 'block';
+        return;
+    }
+
+    noHistory.style.display = 'none';
+    list.innerHTML = '';
+
+    appData.history.slice().reverse().forEach((item, index) => {
+        const realIndex = appData.history.length - 1 - index;
+        const div = document.createElement('div');
+        div.className = 'history-item-ui';
+        div.onclick = () => viewHistoryReceipt(realIndex);
+        
+        if (appData.currentBank === 'picpay') {
+            div.innerHTML = `
+                <div class="history-item-info">
+                    <h4 style="font-size:0.95rem; color:#111;">Pagamento para ${item.receiverName}</h4>
+                    <p style="font-size:0.8rem; color:#737373;">${item.dateTimeFull.split(' - ')[0]}</p>
+                </div>
+                <div class="history-item-value" style="color:#111; font-weight:700;">- ${formatMoney(item.numericValue.toString().replace('.', ','))}</div>
+            `;
+        } else {
+            div.innerHTML = `
+                <div class="history-item-info">
+                    <h4>${item.receiverName}</h4>
+                    <p>${item.date}</p>
+                </div>
+                <div class="history-item-value">- ${formatMoney(item.numericValue.toString().replace('.', ','))}</div>
+            `;
+        }
         list.appendChild(div);
     });
 }
@@ -246,81 +460,56 @@ function renderContacts() {
     });
 }
 
-function selectContact(contact) {
-    transferData.receiverName = contact.name;
-    transferData.receiverCpf = contact.cpf;
-    transferData.key = contact.key;
-    
-    document.getElementById('pix-key-input').value = contact.key;
-    document.querySelector('#pix-key-view .fab-btn').classList.add('active');
-}
-
-function viewHistoryReceipt(index) {
-    const item = appData.history[index];
-    const body = document.getElementById('history-receipt-body');
-    
-    // Reutiliza o estilo do corpo do comprovante branco
-    body.innerHTML = `
-        <!-- Nubank Logo -->
+function getNubankReceiptHTML(item) {
+    return `
         <svg width="40" height="40" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" style="margin-bottom: 20px;">
             <path d="M7.2795 5.4336c-1.1815 0-2.1846.4628-2.9432 1.252h-.002c-.0541-.0022-.1074-.002-.162-.002-1.5436 0-2.9925.8835-3.699 2.2559-.3088.5996-.4234 1.2442-.459 1.9003-.0321.589 0 1.1863 0 1.7696v5.6523H3.184s.0022-2.784 0-5.1777c-.0014-1.6112-.0118-3.0471 0-3.3418.056-1.3937.4372-2.3053 1.1484-3.0508 2.3585.0018 3.8852 1.6091 3.9705 4.168.0196.5874.0254 3.7304.0254 3.7304v3.672h3.1678v-4.965c0-1.5007.0127-2.8006-.0918-3.6952-.292-2.5-1.821-4.168-4.1248-4.168zm8.3903.3008l-3.166.0039v4.9648c0 1.5009-.0127 2.8007.0919 3.6953.2921 2.5001 1.821 4.168 4.1248 4.168 1.1815 0 2.1846-.4628 2.9432-1.252.0003-.0003.0016.0004.002 0 .0542.0023.1093.002.164.002 1.5435 0 2.9905-.8835 3.6971-2.2558.3088-.5997.4233-1.2442.459-1.9004.032-.5889 0-1.1862 0-1.7695V5.7383H20.816s-.0022 2.784 0 5.1777c.0015 1.6113.0119 3.047 0 3.3418-.056 1.3935-.4372 2.3053-1.1483 3.0508-2.3586-.0018-3.8853-1.6091-3.9706-4.168-.0196-.5874-.0273-2.0437-.0273-3.7324Z" fill="#737373"/>
         </svg>
-
         <h1 class="receipt-title-white">Comprovante de<br>transferência</h1>
-        <p class="receipt-date-white">${item.dateTimeFull}</p>
-        
+        <p class="receipt-date-white" contenteditable="true" spellcheck="false">${item.dateTimeFull}</p>
         <div class="receipt-row mt-30">
             <p class="receipt-label">Valor</p>
-            <p class="receipt-val-white">R$ ${item.value}</p>
+            <p class="receipt-val-white" contenteditable="true" spellcheck="false">R$ ${item.value}</p>
         </div>
-        
         <div class="receipt-row">
             <p class="receipt-label">Tipo de transferência</p>
-            <p class="receipt-val-gray">Pix</p>
+            <p class="receipt-val-gray" contenteditable="true" spellcheck="false">Pix</p>
         </div>
-
         <div class="receipt-divider-light"></div>
-
         <div class="receipt-section-title">
             <svg viewBox="0 0 24 24" fill="none"><path d="M20 4H4C2.89 4 2.01 4.89 2.01 6L2 18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8ZM12 16L8 12H11V10H13V12H16L12 16Z" fill="#111111"/></svg>
             <span>Destino</span>
         </div>
-
         <div class="receipt-details">
             <div class="receipt-row-detail">
                 <p class="receipt-label">Nome</p>
-                <p class="receipt-value-bold">${item.receiverName}</p>
+                <p class="receipt-value-bold" contenteditable="true" spellcheck="false">${item.receiverName}</p>
             </div>
             <div class="receipt-row-detail">
                 <p class="receipt-label">CPF/CNPJ</p>
-                <p class="receipt-value-bold">${item.receiverCpf}</p>
+                <p class="receipt-value-bold" contenteditable="true" spellcheck="false">${item.receiverCpf}</p>
             </div>
             <div class="receipt-row-detail">
                 <p class="receipt-label">Chave Pix</p>
-                <p class="receipt-value-bold">${item.key}</p>
+                <p class="receipt-value-bold" contenteditable="true" spellcheck="false">${item.key}</p>
             </div>
             <div class="receipt-row-detail">
                 <p class="receipt-label">Instituição</p>
-                <p class="receipt-value-bold">${item.institution}</p>
+                <p class="receipt-value-bold" contenteditable="true" spellcheck="false">${item.institution}</p>
             </div>
         </div>
-
         <div class="receipt-divider-light"></div>
-        
         <div class="receipt-section-title">
             <svg viewBox="0 0 24 24" fill="none"><path d="M20 4H4C2.89 4 2.01 4.89 2.01 6L2 18C2 19.11 2.89 20 4 20H20C21.11 20 22 19.11 22 18V6C22 4.89 21.11 4 20 4ZM20 18H4V12H20V18ZM20 8H4V6H20V8ZM12 10L16 14H13V16H11V14H8L12 10Z" fill="#111111"/></svg>
             <span>Origem</span>
         </div>
-
         <div class="receipt-details">
             <div class="receipt-row-detail">
                 <p class="receipt-label">Nome</p>
                 <p class="receipt-value-bold">${appData.userName}</p>
             </div>
         </div>
-
         <div class="receipt-divider-light"></div>
-        
         <div class="receipt-details">
             <div class="receipt-row-detail" style="flex-direction: column; align-items: flex-start;">
                 <p class="receipt-label" style="margin-bottom: 8px;">ID da transação</p>
@@ -328,6 +517,92 @@ function viewHistoryReceipt(index) {
             </div>
         </div>
     `;
+}
+
+function getPicPayReceiptHTML(item) {
+    return `
+        <div class="picpay-receipt-header" style="display:flex; justify-content:center; margin-bottom: 24px;">
+            <svg width="100" height="30" viewBox="0 0 100 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12.5 5C8.35786 5 5 8.35786 5 12.5C5 16.6421 8.35786 20 12.5 20C16.6421 20 20 16.6421 20 12.5C20 8.35786 16.6421 5 12.5 5ZM12.5 18C9.46243 18 7 15.5376 7 12.5C7 9.46243 9.46243 7 12.5 7C15.5376 7 18 9.46243 18 12.5C18 15.5376 15.5376 18 12.5 18Z" fill="#11C76F"/>
+                <path d="M25 5H30V15H35V20H25V5Z" fill="#111"/>
+                <text x="38" y="18" font-family="Inter" font-weight="700" font-size="14" fill="#111">PicPay</text>
+            </svg>
+        </div>
+        <h1 class="picpay-receipt-title">Comprovante de Pix enviado</h1>
+        <p class="picpay-receipt-label" contenteditable="true" spellcheck="false" style="margin-bottom: 0;">${item.dateTimeFull.split(' - ')[0]} - ${item.dateTimeFull.split(' - ')[1]}</p>
+        
+        <div class="picpay-success-banner">
+            <div class="picpay-success-check">
+                <svg viewBox="0 0 24 24" fill="white" width="16"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+            </div>
+            <span contenteditable="true" spellcheck="false">Pagamento enviado com sucesso!</span>
+        </div>
+
+        <div class="picpay-receipt-section">
+            <p class="picpay-receipt-label">Valor</p>
+            <h2 class="picpay-receipt-val" contenteditable="true" spellcheck="false">R$ ${item.value}</h2>
+        </div>
+
+        <div class="picpay-receipt-person">
+            <p class="picpay-receipt-label">Para</p>
+            <h4 contenteditable="true" spellcheck="false">${item.receiverName}</h4>
+            <p contenteditable="true" spellcheck="false">${item.receiverCpf}</p>
+            <p contenteditable="true" spellcheck="false">${item.institution}</p>
+        </div>
+
+        <div class="picpay-receipt-person">
+            <p class="picpay-receipt-label">De</p>
+            <h4 contenteditable="true" spellcheck="false">${appData.userName}</h4>
+            <p contenteditable="true" spellcheck="false">***.***.***-**</p>
+            <p contenteditable="true" spellcheck="false">PICPAY SERVIÇOS S.A.</p>
+        </div>
+
+        <div class="picpay-receipt-section">
+            <p class="picpay-receipt-label">ID da transação</p>
+            <p contenteditable="true" spellcheck="false" style="font-size: 0.85rem; color: #111; word-break: break-all; font-weight: 500;">${item.transactionId}</p>
+        </div>
+
+        <div class="picpay-info-box">
+            <svg viewBox="0 0 24 24" fill="#2196F3" width="24" style="flex-shrink: 0;"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+            <p>Se precisar, você pode devolver o valor total ou parcial desse pagamento por 90 dias a partir da data de recebimento.</p>
+        </div>
+
+        <div class="picpay-receipt-footer">
+            Dúvidas? Acesse a nossa <span>Central de Ajuda</span>
+        </div>
+
+        <div class="picpay-receipt-actions">
+            <div class="picpay-action-item" onclick="shareReceipt()">
+                <div class="picpay-action-icon">
+                    <svg viewBox="0 0 24 24" fill="#11C76F" width="24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/></svg>
+                </div>
+                <span>Compartilhar Comprovante</span>
+            </div>
+            <div class="picpay-action-item">
+                <div class="picpay-action-icon">
+                    <svg viewBox="0 0 24 24" fill="#11C76F" width="24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+                </div>
+                <span>Devolver pagamento</span>
+            </div>
+            <div class="picpay-action-item">
+                <div class="picpay-action-icon">
+                    <svg viewBox="0 0 24 24" fill="#11C76F" width="24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11h-4v4h-2v-4H7v-2h4V7h2v4h4v2z"/></svg>
+                </div>
+                <span>Guardar dinheiro</span>
+            </div>
+        </div>
+    `;
+}
+
+function viewHistoryReceipt(index) {
+    const item = appData.history[index];
+    const body = document.getElementById('history-receipt-body');
+    
+    if (appData.currentBank === 'picpay') {
+        body.innerHTML = getPicPayReceiptHTML(item);
+    } else {
+        body.innerHTML = getNubankReceiptHTML(item);
+    }
     
     navigateTo('history-receipt-view');
 }
@@ -366,27 +641,15 @@ function updatePassDots() {
 
 // Generate Receipt
 function generateReceipt() {
-    // Populate Receipt Data
-    document.getElementById('receipt-val').innerText = `R$ ${transferData.value}`;
-    document.getElementById('receipt-name').innerText = transferData.receiverName;
-    document.getElementById('receipt-origin-name').innerText = appData.userName;
-    document.getElementById('receipt-key').innerText = transferData.key; // Chave automática!
-
-    // Generate current Date and Time
     const now = new Date();
     const months = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
     const dateStrShort = `${String(now.getDate()).padStart(2, '0')} ${months[now.getMonth()]}`;
     const dateStrFull = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(2, '0')}/${now.getFullYear()} - ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}:${String(now.getSeconds()).padStart(2, '0')}`;
     
-    document.getElementById('receipt-datetime').innerText = dateStrFull;
-
-    // Generate Random Transaction ID matching real Nubank format
     const randomHex = Array.from({ length: 22 }, () => Math.floor(Math.random() * 16).toString(16)).join('').toLowerCase();
     const idStr = `E18236120${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${randomHex}`;
-    document.getElementById('receipt-id').innerText = idStr;
 
-    // Salva no Histórico
-    const historyItem = {
+    const item = {
         value: transferData.value,
         numericValue: transferData.numericValue,
         receiverName: transferData.receiverName,
@@ -397,10 +660,17 @@ function generateReceipt() {
         transactionId: idStr,
         institution: "BCO SANTANDER (BRASIL) S.A."
     };
-    if(!appData.history) appData.history = [];
-    appData.history.push(historyItem);
 
-    // Salva nos contatos se não existir
+    const body = document.getElementById('receipt-body');
+    if (appData.currentBank === 'picpay') {
+        body.innerHTML = getPicPayReceiptHTML(item);
+    } else {
+        body.innerHTML = getNubankReceiptHTML(item);
+    }
+
+    if(!appData.history) appData.history = [];
+    appData.history.push(item);
+
     if(!appData.contacts) appData.contacts = [];
     const exists = appData.contacts.find(c => c.cpf === transferData.receiverCpf);
     if(!exists) {
@@ -412,27 +682,30 @@ function generateReceipt() {
         renderContacts();
     }
 
-    // DEDUCT BALANCE!
-    let currentBalanceNum = parseFloat(appData.balance);
+    // Subtrai do banco ativo
+    let currentBalanceNum = parseFloat(appData.currentBank === 'picpay' ? appData.balancePicPay : appData.balanceNubank);
     if (isNaN(currentBalanceNum)) currentBalanceNum = 0;
 
     currentBalanceNum -= transferData.numericValue;
-    if (currentBalanceNum < 0) currentBalanceNum = 0; // Prevent negative
+    if (currentBalanceNum < 0) currentBalanceNum = 0;
 
-    appData.balance = currentBalanceNum.toString();
+    if(appData.currentBank === 'picpay') {
+        appData.balancePicPay = currentBalanceNum.toString();
+    } else {
+        appData.balanceNubank = currentBalanceNum.toString();
+    }
+    
     localStorage.setItem('nubankCloneData', JSON.stringify(appData));
     
     updateUI();
     renderHistory();
 
-    // Show Success View First
     document.getElementById('success-val').innerText = `R$ ${transferData.value}`;
     document.getElementById('success-name').innerText = `Para ${transferData.receiverName}`;
     navigateTo('success-view');
 }
 
 async function shareReceipt() {
-    // Identifica qual view está ativa para tirar o print
     const activeView = document.querySelector('.view.active');
     const receiptArea = activeView.id === 'receipt-view' ? 
         document.querySelector('#receipt-view .receipt-body-white') : 
@@ -440,32 +713,27 @@ async function shareReceipt() {
 
     if (!receiptArea) return;
 
-    // Feedback visual (opcional)
     const shareBtn = document.querySelector('.view.active .share-receipt');
-    shareBtn.style.opacity = '0.5';
+    if(shareBtn) shareBtn.style.opacity = '0.5';
 
     try {
-        // Gera o "print" da área do comprovante
         const canvas = await html2canvas(receiptArea, {
             backgroundColor: "#ffffff",
-            scale: 3, // Alta qualidade
+            scale: 3,
             logging: false,
             useCORS: true
         });
 
-        // Converte para Blob (imagem real)
         canvas.toBlob(async (blob) => {
             const file = new File([blob], 'comprovante-pix.png', { type: 'image/png' });
 
-            // Verifica se o navegador suporta compartilhar ARQUIVOS
             if (navigator.canShare && navigator.canShare({ files: [file] })) {
                 await navigator.share({
                     files: [file],
                     title: 'Comprovante Pix',
-                    text: 'Enviado via Nubank'
+                    text: 'Enviado via PicPay'
                 });
             } else {
-                // Se não suportar (ex: Desktop Chrome sem HTTPS), ele faz o download da imagem
                 const link = document.createElement('a');
                 link.download = 'comprovante-pix.png';
                 link.href = canvas.toDataURL("image/png");
@@ -478,12 +746,11 @@ async function shareReceipt() {
         console.error('Erro ao gerar imagem:', err);
         alert('Erro ao gerar o comprovante em imagem.');
     } finally {
-        shareBtn.style.opacity = '1';
+        if(shareBtn) shareBtn.style.opacity = '1';
     }
 }
 
 function finishPix() {
-    // Clear inputs
     document.getElementById('transfer-input-val').value = '';
     document.getElementById('pix-key-input').value = '';
     document.querySelector('#transfer-view .fab-btn').classList.remove('active');
@@ -495,9 +762,11 @@ function finishPix() {
 // Admin Panel Logic
 function openAdmin() {
     document.getElementById('admin-name').value = appData.userName;
-    document.getElementById('admin-balance').value = appData.balance;
+    document.getElementById('admin-balance-nubank').value = appData.balanceNubank;
+    document.getElementById('admin-balance-picpay').value = appData.balancePicPay;
     document.getElementById('admin-invoice').value = appData.invoice;
     document.getElementById('admin-loan').value = appData.loan;
+    document.getElementById('admin-bank').value = appData.currentBank || 'nubank';
 
     document.getElementById('admin-modal').style.display = 'flex';
 }
@@ -508,16 +777,20 @@ function closeAdmin() {
 
 function saveAdminData() {
     appData.userName = document.getElementById('admin-name').value;
-
-    // Ensure inputs are using dots for math, replace comma if user typed it
-    appData.balance = document.getElementById('admin-balance').value.replace(',', '.');
+    appData.balanceNubank = document.getElementById('admin-balance-nubank').value.replace(',', '.');
+    appData.balancePicPay = document.getElementById('admin-balance-picpay').value.replace(',', '.');
     appData.invoice = document.getElementById('admin-invoice').value.replace(',', '.');
     appData.loan = document.getElementById('admin-loan').value.replace(',', '.');
+    appData.currentBank = document.getElementById('admin-bank').value;
 
     localStorage.setItem('nubankCloneData', JSON.stringify(appData));
 
+    applyTheme();
     updateUI();
     closeAdmin();
+    
+    // Refresh to home to see changes
+    navigateTo('home-view');
 }
 
 window.onclick = function (event) {
