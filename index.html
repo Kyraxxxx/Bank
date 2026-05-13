@@ -20,7 +20,7 @@
     <div class="app-container">
         
         <!-- FACE ID VIEW (Inicia aqui) - DESATIVADO -->
-        <div id="faceid-view" class="view" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center; z-index:1000;">
+        <div id="faceid-view" class="view" style="background:#000; display:flex; flex-direction:column; align-items:center; justify-content:center;">
             <div class="faceid-container">
                 <svg viewBox="0 0 100 100" class="faceid-icon">
                     <path d="M25,30 Q25,25 30,25 L40,25 M60,25 L70,25 Q75,25 75,30 L75,40 M75,60 L75,70 Q75,75 70,75 L60,75 M40,75 L30,75 Q25,75 25,70 L25,60" fill="none" stroke="white" stroke-width="2"/>
@@ -33,7 +33,7 @@
         </div>
 
         <!-- HOME VIEW -->
-        <div id="home-view" class="view active">
+        <div id="home-view" class="view active" style="display:block;">
             <!-- Header Section -->
             <header class="header">
                 <div class="header-top">
@@ -321,10 +321,10 @@
                 <div class="success-check"><svg viewBox="0 0 24 24" fill="none"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z" fill="white"/></svg></div>
                 <h1 style="font-size:1.5rem;font-weight:700;margin-top:24px;">Transferência realizada</h1>
                 <p id="success-val" style="font-size:2rem;font-weight:700;margin-top:12px;">R$ 0,00</p>
-                <p id="success-name" style="font-size:1rem;margin-top:8px;opacity:0.9;">Para João Silva</p>
+                <p id="success-name" style="font-size:1rem;margin-top:8px;opacity:0.9;"></p>
             </div>
             <div style="padding:20px;position:absolute;bottom:0;width:100%;display:flex;flex-direction:column;gap:12px;padding-bottom:calc(20px + env(safe-area-inset-bottom));">
-                <button class="purple-btn full-width" onclick="showCurrentReceipt()" style="padding:16px;font-size:1rem;background:rgba(255,255,255,0.2);color:#fff;">Ver comprovante</button>
+                <button class="purple-btn full-width" onclick="navigateTo('receipt-view')" style="padding:16px;font-size:1rem;background:rgba(255,255,255,0.2);color:#fff;">Ver comprovante</button>
                 <button class="purple-btn full-width" onclick="navigateTo('home-view')" style="padding:16px;font-size:1rem;background:transparent;border:1px solid rgba(255,255,255,0.3);color:#fff;">Ir para o início</button>
             </div>
         </div>
